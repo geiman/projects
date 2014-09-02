@@ -3,32 +3,53 @@
 
 import sys, argparse
 
-current_brightness = int(0);
-new_brightness = 0;
-key = 0;
-
 #f.write(new_brightness);
 
-def read_brightness():
-    global current_brightness
-    global f
-    current_brightness = int(f.readline());
+#def set_brightness():
+#    if (current_brightness + 1000) < 16055:
+#        f.write(new_brightness = str(current_brightness + 1000))
 
-def set_brightness():
-    global current_brightness
-    global new_brightness
+def brighten_screen(current_brightness):
     if (current_brightness + 1000) < 16055:
-        f.write(new_brightness = str(current_brightness + 1000))
+        new_brightness = str(current_brightness + 1000)
+    else:
+        new_brightness = 16055
+
+    return new_brightness
+
+def dim_screen(current_brightness):
+    if (current_brightness - 1000) > 0:
+        new_brightness = str(current_brightness - 1000)
+    else:
+        new_brightness = 0
+
+    return new_brightness
+
 
 ## Script Body
 
 def main(argv):
-    f = open('/sys/class/backlight/gmux_backlight/brightness', 'r+')
     parser = argparse.ArgumentParser(description='Increases or decreases screen brightness')
     parser.add_argument('key', metavar='k', type=int, help='A keyboard key number')
 
-    args = parser.parse_args()
-    print args.key
+    args= parser.parse_args()
+
+    f = open('/sys/class/backlight/gmux_backlight/brightness', 'r+')
+    current_brightness = int(f.readline());
+
+    # 232 == lower; 233 == higher
+    if args.key == 232:
+        new_brightness = dim_screen(current_brightness)
+    elif args.key == 233:
+        new_brightness = brighten_screen(current_brightness)
+    else:
+        print "Key not accepted"
+        new_brightness = -1
+
+    if (new_brightness != -1):
+        f.write(str(new_brightness))
+
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
